@@ -47,7 +47,7 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.events.ChangeTitleWidgetEvent;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
 import org.uberfire.ext.editor.commons.client.BaseEditor;
-import org.uberfire.ext.editor.commons.client.file.SaveOperationService;
+import org.uberfire.ext.editor.commons.client.file.popups.SavePopUpPresenter;
 import org.uberfire.ext.editor.commons.service.support.SupportsCopy;
 import org.uberfire.ext.editor.commons.service.support.SupportsDelete;
 import org.uberfire.lifecycle.OnMayClose;
@@ -85,6 +85,9 @@ public class DataSetDefEditorPresenter extends BaseEditor {
     DataSetDefType resourceType;
     @Inject
     ErrorPopupPresenter errorPopupPresenter;
+
+    @Inject
+    SavePopUpPresenter savePopUpPresenter;
 
     @Inject
     public DataSetDefScreenView view;
@@ -220,7 +223,7 @@ public class DataSetDefEditorPresenter extends BaseEditor {
     protected void save() {
         workflow.flush();
         if (!workflow.hasErrors()) {
-            new SaveOperationService().save(versionRecordManager.getCurrentPath(),
+            savePopUpPresenter.show(versionRecordManager.getCurrentPath(),
                     new ParameterizedCommand<String>() {
                         @Override public void execute(final String commitMessage) {
                             final DataSetDef def = getDataSetDef();

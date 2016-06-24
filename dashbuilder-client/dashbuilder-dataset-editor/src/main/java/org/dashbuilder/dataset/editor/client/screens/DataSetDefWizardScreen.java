@@ -43,7 +43,7 @@ import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
-import org.uberfire.ext.editor.commons.client.file.SavePopUp;
+import org.uberfire.ext.editor.commons.client.file.popups.SavePopUpPresenter;
 import org.uberfire.ext.widgets.common.client.common.BusyPopup;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.Command;
@@ -71,6 +71,7 @@ public class DataSetDefWizardScreen {
     Event<NotificationEvent> notification;
     PlaceManager placeManager;
     ErrorPopupPresenter errorPopupPresenter;
+    SavePopUpPresenter savePopUpPresenter;
     public DataSetDefScreenView view;
 
     PlaceRequest placeRequest;
@@ -85,7 +86,8 @@ public class DataSetDefWizardScreen {
                                   final Event<NotificationEvent> notification,
                                   final PlaceManager placeManager,
                                   final ErrorPopupPresenter errorPopupPresenter,
-                                  final DataSetDefScreenView view) {
+                                  final DataSetDefScreenView view,
+                                  final SavePopUpPresenter savePopUpPresenter) {
         this.beanManager = beanManager;
         this.workflowFactory = workflowFactory;
         this.services = services;
@@ -94,6 +96,7 @@ public class DataSetDefWizardScreen {
         this.placeManager = placeManager;
         this.errorPopupPresenter = errorPopupPresenter;
         this.view = view;
+        this.savePopUpPresenter = savePopUpPresenter;
     }
 
     @WorkbenchPartTitle
@@ -207,11 +210,11 @@ public class DataSetDefWizardScreen {
     
     protected void save() {
         final DataSetDef dataSetDef = currentWorkflow.getDataSetDef();
-        new SavePopUp(new ParameterizedCommand<String>() {
+        savePopUpPresenter.show(new ParameterizedCommand<String>() {
             @Override public void execute(final String message) {
                 onSave(dataSetDef, message);
             }
-        }).show();
+        });
     }
     
     void onSave(final DataSetDef dataSetDef, final String message) {

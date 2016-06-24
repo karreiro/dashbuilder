@@ -36,6 +36,7 @@ import org.mockito.stubbing.Answer;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.widgets.common.ErrorPopupPresenter;
+import org.uberfire.ext.editor.commons.client.file.popups.SavePopUpPresenter;
 import org.uberfire.mocks.CallerMock;
 import org.uberfire.mocks.EventSourceMock;
 import org.uberfire.mvp.PlaceRequest;
@@ -65,6 +66,7 @@ public class DataSetDefWizardScreenTest {
     @Mock DataSetBasicAttributesWorkflow dataSetBasicAttributesWorkflow;
     @Mock SQLDataSetEditWorkflow editWorkflow;
     @Mock DataSetDefVfsServices dataSetDefVfsServices;
+    @Mock SavePopUpPresenter savePopUpPresenter;
     Caller<DataSetDefVfsServices> services;
     private DataSetDefWizardScreen presenter;
 
@@ -104,7 +106,7 @@ public class DataSetDefWizardScreenTest {
         doNothing().when(placeManager).closePlace(any(PlaceRequest.class));
         doNothing().when(placeManager).closePlace(anyString());
         presenter = new DataSetDefWizardScreen(beanManager, workflowFactory, services, clientServices,
-                notification, placeManager, errorPopupPresenter, view);
+                notification, placeManager, errorPopupPresenter, view, savePopUpPresenter);
         presenter.services = services;
     }
 
