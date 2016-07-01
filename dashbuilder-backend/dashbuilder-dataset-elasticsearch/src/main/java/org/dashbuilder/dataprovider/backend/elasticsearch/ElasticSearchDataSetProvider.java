@@ -26,11 +26,7 @@ import org.dashbuilder.dataprovider.backend.elasticsearch.rest.util.ElasticSearc
 import org.dashbuilder.dataset.*;
 import org.dashbuilder.dataset.date.DayOfWeek;
 import org.dashbuilder.dataset.date.Month;
-import org.dashbuilder.dataset.def.DataColumnDef;
-import org.dashbuilder.dataset.def.DataSetDef;
-import org.dashbuilder.dataset.def.DataSetDefRegistry;
-import org.dashbuilder.dataset.def.DataSetDefRegistryListener;
-import org.dashbuilder.dataset.def.ElasticSearchDataSetDef;
+import org.dashbuilder.dataset.def.*;
 import org.dashbuilder.dataset.engine.group.IntervalBuilder;
 import org.dashbuilder.dataset.engine.group.IntervalBuilderLocator;
 import org.dashbuilder.dataset.engine.group.IntervalList;
@@ -120,10 +116,18 @@ public class ElasticSearchDataSetProvider implements DataSetProvider, DataSetDef
 
     public static ElasticSearchDataSetProvider get() {
         if (SINGLETON == null) {
+
+            DataSetCore dataSetCore = DataSetCore.get();
             StaticDataSetProvider staticDataSetProvider = DataSetCore.get().getStaticDataSetProvider();
             DataSetDefRegistry dataSetDefRegistry = DataSetCore.get().getDataSetDefRegistry();
             IntervalBuilderLocator intervalBuilderLocator = DataSetCore.get().getIntervalBuilderLocator();
-            SINGLETON = new ElasticSearchDataSetProvider(staticDataSetProvider, dataSetDefRegistry, intervalBuilderLocator);
+            IntervalBuilderDynamicDate intervalBuilderDynamicDate = dataSetCore.getIntervalBuilderDynamicDate();
+
+            SINGLETON = new ElasticSearchDataSetProvider(staticDataSetProvider,
+                    intervalBuilderLocator,
+                    intervalBuilderDynamicDate);
+
+            dataSetDefRegistry.addListener(SINGLETON);
         }
         return SINGLETON;
     }
@@ -131,8 +135,8 @@ public class ElasticSearchDataSetProvider implements DataSetProvider, DataSetDef
 
     protected Logger log = LoggerFactory.getLogger(ElasticSearchDataSetProvider.class);
     protected StaticDataSetProvider staticDataSetProvider;
-    protected DataSetDefRegistry dataSetDefRegistry;
     protected IntervalBuilderLocator intervalBuilderLocator;
+    protected IntervalBuilderDynamicDate intervalBuilderDynamicDate;
     protected ElasticSearchClientFactory clientFactory;
     protected ElasticSearchValueTypeMapper typeMapper;
     protected ElasticSearchQueryBuilderFactory queryBuilderFactory;
@@ -147,16 +151,16 @@ public class ElasticSearchDataSetProvider implements DataSetProvider, DataSetDef
     }
 
     public ElasticSearchDataSetProvider(StaticDataSetProvider staticDataSetProvider,
-                                        DataSetDefRegistry dataSetDefRegistry,
-                                        IntervalBuilderLocator intervalBuilderLocator) {
+                                        IntervalBuilderLocator intervalBuilderLocator,
+                                        IntervalBuilderDynamicDate intervalBuilderDynamicDate) {
 
         this.staticDataSetProvider = staticDataSetProvider;
-        this.dataSetDefRegistry = dataSetDefRegistry;
         this.intervalBuilderLocator = intervalBuilderLocator;
+        this.intervalBuilderDynamicDate = intervalBuilderDynamicDate;
 
         this.typeMapper = new ElasticSearchValueTypeMapper();
         ElasticSearchUtils searchUtils = new ElasticSearchUtils(typeMapper);
-        this.clientFactory = new ElasticSearchClientFactory(typeMapper, searchUtils);
+        this.clientFactory = new ElasticSearchClientFactory(typeMapper, intervalBuilderDynamicDate, searchUtils);
         this.queryBuilderFactory = new ElasticSearchQueryBuilderFactory(typeMapper, searchUtils);
     }
 
@@ -626,10 +630,7 @@ public class ElasticSearchDataSetProvider implements DataSetProvider, DataSetDef
 
         // Put into cache.
         if (!isTestMode) {
-            final boolean isDefRegistered = def.getUUID() != null && dataSetDefRegistry.getDataSetDef(def.getUUID()) != null;
-            if (isDefRegistered) {
-                _metadataMap.put(def.getUUID(), result);
-            }
+            _metadataMap.put(def.getUUID(), result);
         } else if (log.isDebugEnabled()) {
             log.debug("Using look-up in test mode. Skipping adding data set metadata for uuid [" + def.getUUID() + "] into cache.");
         }
