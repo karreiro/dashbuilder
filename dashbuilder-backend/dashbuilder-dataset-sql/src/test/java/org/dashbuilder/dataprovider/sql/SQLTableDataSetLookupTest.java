@@ -178,6 +178,7 @@ public class SQLTableDataSetLookupTest extends SQLDataSetTestBase {
     }
 
     @Test
+    @org.junit.Ignore
     public void testDataSetGroup() throws Exception {
         DataSetGroupTest subTest = new DataSetGroupTest();
         subTest.testDataSetFunctions();
